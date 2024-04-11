@@ -1,0 +1,9 @@
+{
+  "name": "AzuClock",
+  "version_number": "1.0.3",
+  "website_url": "https://discord.gg/pdHgy6Bsng",
+  "description": "Simple clock for in-game time.",
+  "dependencies": [
+    "denikson-BepInExPack_Valheim-5.4.2202"
+  ]
+}
