@@ -1,6 +1,6 @@
 {
   "name": "AzuClock",
-  "version_number": "1.0.3",
+  "version_number": "1.0.4",
   "website_url": "https://discord.gg/pdHgy6Bsng",
   "description": "Simple clock for in-game time.",
   "dependencies": [

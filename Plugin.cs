@@ -17,7 +17,7 @@ namespace AzuClock
 
     {
         internal const string ModName = "AzuClock";
-        internal const string ModVersion = "1.0.3";
+        internal const string ModVersion = "1.0.4";
         internal const string Author = "Azumatt";
         private const string ModGUID = Author + "." + ModName;
         private static string ConfigFileName = ModGUID + ".cfg";
@@ -52,8 +52,7 @@ namespace AzuClock
 
         private void Update()
         {
-            if (Utilities.IgnoreKeyPresses() || ToggleClockKeyOnPress.Value == Toggle.On ||
-                !ToggleClockKey.Value.IsDown())
+            if (Utilities.IgnoreKeyPresses() || ToggleClockKeyOnPress.Value == Toggle.On || !ToggleClockKey.Value.IsDown())
                 return;
             var show = ShowingClock.Value;
             ShowingClock.Value = show == Toggle.Off ? Toggle.On : Toggle.Off;
@@ -90,31 +89,22 @@ namespace AzuClock
                                 return;
                         }
 
-                        alpha = (ShowClockOnChangeFadeLength.Value + ShowClockOnChangeFadeTime.Value - _shownTime) /
-                                ShowClockOnChangeFadeLength.Value;
+                        alpha = (ShowClockOnChangeFadeLength.Value + ShowClockOnChangeFadeTime.Value - _shownTime) / ShowClockOnChangeFadeLength.Value;
                     }
 
                     _shownTime += Time.deltaTime;
                 }
 
-                Style.normal.textColor = new Color(ClockFontColor.Value.r, ClockFontColor.Value.g,
-                    ClockFontColor.Value.b, ClockFontColor.Value.a * alpha);
-                Style2.normal.textColor = new Color(ClockShadowColor.Value.r, ClockShadowColor.Value.g,
-                    ClockShadowColor.Value.b, ClockShadowColor.Value.a * alpha);
-                if ((ToggleClockKeyOnPress.Value == Toggle.Off && ShowingClock.Value == Toggle.On ||
-                     ToggleClockKeyOnPress.Value == Toggle.On &&
-                     (ShowClockOnChange.Value == Toggle.On || ToggleClockKey.Value.IsPressed())) &&
-                    Hud.instance.IsVisible())
+                Style.normal.textColor = new Color(ClockFontColor.Value.r, ClockFontColor.Value.g, ClockFontColor.Value.b, ClockFontColor.Value.a * alpha);
+                Style2.normal.textColor = new Color(ClockShadowColor.Value.r, ClockShadowColor.Value.g, ClockShadowColor.Value.b, ClockShadowColor.Value.a * alpha);
+                if ((ToggleClockKeyOnPress.Value == Toggle.Off && ShowingClock.Value == Toggle.On || ToggleClockKeyOnPress.Value == Toggle.On && (ShowClockOnChange.Value == Toggle.On || ToggleClockKey.Value.IsPressed())) && Hud.instance.IsVisible())
                 {
                     GUI.backgroundColor = Color.clear;
-                    _windowRect = GUILayout.Window(windowId, new Rect(_windowRect.position, _timeRect.size),
-                        Utilities.WindowBuilder,
-                        "");
+                    _windowRect = GUILayout.Window(windowId, new Rect(_windowRect.position, _timeRect.size), Utilities.WindowBuilder, "");
                 }
             }
 
-            if (!Input.GetKey(KeyCode.Mouse0) &&
-                (_windowRect.x != _clockPosition.x || _windowRect.y != _clockPosition.y))
+            if (!Input.GetKey(KeyCode.Mouse0) && (_windowRect.x != _clockPosition.x || _windowRect.y != _clockPosition.y))
             {
                 _clockPosition = new Vector2(_windowRect.x, _windowRect.y);
                 ClockLocationString.Value = $"{_windowRect.x},{_windowRect.y}";
@@ -220,8 +210,7 @@ namespace AzuClock
             public override object Clamp(object value) => value;
             public override bool IsValid(object value) => true;
 
-            public override string ToDescriptionString() =>
-                "# Acceptable values: " + string.Join(", ", UnityInput.Current.SupportedKeyCodes);
+            public override string ToDescriptionString() => "# Acceptable values: " + string.Join(", ", UnityInput.Current.SupportedKeyCodes);
         }
 
         #endregion
