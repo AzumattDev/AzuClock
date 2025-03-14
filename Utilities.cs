@@ -12,8 +12,7 @@ public class Utilities
 {
     internal static void WindowBuilder(int id)
     {
-        AzuClockPlugin._timeRect =
-            GUILayoutUtility.GetRect(new GUIContent(AzuClockPlugin.NewTimeString), AzuClockPlugin.Style);
+        AzuClockPlugin._timeRect = GUILayoutUtility.GetRect(new GUIContent(AzuClockPlugin.NewTimeString), AzuClockPlugin.Style);
 
         GUI.DragWindow(AzuClockPlugin._timeRect);
 
@@ -41,8 +40,7 @@ public class Utilities
 
         if (AzuClockPlugin.ClockUseOSFont.Value == AzuClockPlugin.Toggle.On)
         {
-            AzuClockPlugin._clockFont = Font.CreateDynamicFontFromOSFont(AzuClockPlugin.ClockFontName.Value,
-                AzuClockPlugin.ClockFontSize.Value);
+            AzuClockPlugin._clockFont = Font.CreateDynamicFontFromOSFont(AzuClockPlugin.ClockFontName.Value, AzuClockPlugin.ClockFontSize.Value);
         }
         else
         {
@@ -75,41 +73,51 @@ public class Utilities
         AzuClockPlugin._configApplied = true;
     }
 
-    private static string GetCurrentTimeString(DateTime theTime, float fraction, int days)
-    {
-        string[]? fuzzyStringArray = AzuClockPlugin.ClockFuzzyStrings.Value.Split(',');
-
-        int idx = Math.Min((int)(fuzzyStringArray.Length * fraction), fuzzyStringArray.Length - 1);
-
-        if (AzuClockPlugin.ClockFormat.Value == "fuzzy")
-            return string.Format(AzuClockPlugin.ClockString.Value, fuzzyStringArray[idx]);
-
-        return string.Format(AzuClockPlugin.ClockString.Value, theTime.ToString(AzuClockPlugin.ClockFormat.Value), fuzzyStringArray[idx], days.ToString());
-    }
-
-    internal static string GetCurrentTimeString()
+    internal static string GetCombinedTimeString()
     {
         if (!EnvMan.instance)
             return "";
-        float fraction = EnvMan.instance.m_smoothDayFraction;
 
-        int hour = (int)(fraction * 24);
-        int minute = (int)((fraction * 24 - hour) * 60);
-        int second = (int)(((fraction * 24 - hour) * 60 - minute) * 60);
+        // Calculate game time from the game's day fraction.
+        float gameFraction = EnvMan.instance.m_smoothDayFraction;
+        int gameHour = (int)(gameFraction * 24);
+        int gameMinute = (int)((gameFraction * 24 - gameHour) * 60);
+        int gameSecond = (int)(((gameFraction * 24 - gameHour) * 60 - gameMinute) * 60);
 
         DateTime now = DateTime.Now;
-        DateTime theTime = new(now.Year, now.Month, now.Day, hour, minute, second);
+        // Construct the game time based on today's date but using game-derived hour/minute/second.
+        DateTime gameTime = new DateTime(now.Year, now.Month, now.Day, gameHour, gameMinute, gameSecond);
         int days = EnvMan.instance.GetCurrentDay();
-        return GetCurrentTimeString(theTime, fraction, days);
-    }
-    internal static string GetRealCurrentTimeString()
-    {
-        DateTime theTime = DateTime.Now;
-        float fraction = (theTime.Hour * 60 * 60 + theTime.Minute * 60 + theTime.Second) / 24 * 60 * 60;
 
-        return GetCurrentTimeString(theTime, fraction, 0);
+        // Get fuzzy strings from the config.
+        string[] fuzzyStrings = AzuClockPlugin.ClockFuzzyStrings.Value.Split(',');
+        int idx = Math.Min((int)(fuzzyStrings.Length * gameFraction), fuzzyStrings.Length - 1);
+        string fuzzy = fuzzyStrings[idx];
+
+        string gameTimeStr;
+        string realTimeStr;
+
+        // Check the configured time format.
+        if (AzuClockPlugin.ClockFormat.Value == "fuzzy")
+        {
+            // In fuzzy mode, use the fuzzy string as the game time.
+            gameTimeStr = fuzzy;
+            // If realtime is enabled, display it using a default format (here "HH:mm").
+            realTimeStr = DateTime.Now.ToString("HH:mm");
+        }
+        else
+        {
+            // Use the given ClockFormat to format the game time.
+            gameTimeStr = gameTime.ToString(AzuClockPlugin.ClockFormat.Value);
+            // Use the same format for realtime if enabled; otherwise, empty string.
+            realTimeStr = DateTime.Now.ToString(AzuClockPlugin.ClockFormat.Value);
+        }
+
+        // Return the combined string.
+        // {0} = game time string, {1} = fuzzy string, {2} = current day, {3} = realtime string.
+        return string.Format(AzuClockPlugin.ClockString.Value, gameTimeStr, fuzzy, days.ToString(), realTimeStr);
     }
-    
+
     public static bool IgnoreKeyPresses(bool extra = false)
     {
         if (!extra)
@@ -127,7 +135,6 @@ public class Utilities
         AzuClockPlugin.ShowingClock = AzuClockPlugin.context.config("1 - General", "Show Clock", AzuClockPlugin.Toggle.On, "Show the clock?");
         AzuClockPlugin.ToggleClockKey = AzuClockPlugin.context.config("1 - General", "Show Clock Key", new KeyboardShortcut(KeyCode.Home), new ConfigDescription("Key(s) used to toggle the clock display. use https://docs.unity3d.com/Manual/ConventionalGameInput.html", new AzuClockPlugin.AcceptableShortcuts()));
         AzuClockPlugin.ClockLocationString = AzuClockPlugin.context.config("1 - General", "Clock Location String", "48%,0%", "Location on the screen to show the clock (x,y) or (x%,y%)");
-        AzuClockPlugin.RealTime = AzuClockPlugin.context.config("1 - General", "Show Realtime", AzuClockPlugin.Toggle.Off, "If on, it will show the real time instead of the game time");
         AzuClockPlugin.ShowClockOnChange = AzuClockPlugin.context.config("1 - General", "Show Clock On Change", AzuClockPlugin.Toggle.Off, "Only show the clock when the time changes?");
         AzuClockPlugin.ShowClockOnChangeFadeTime = AzuClockPlugin.context.config("1 - General", "Show Clock On Change Fade Time", 5f, "If only showing on change, length in seconds to show the clock before begining to fade");
         AzuClockPlugin.ShowClockOnChangeFadeLength = AzuClockPlugin.context.config("1 - General", "Show Clock On Change Fade Length", 1f, "How long fade should take in seconds");
@@ -139,8 +146,8 @@ public class Utilities
         AzuClockPlugin.ClockFontColor = AzuClockPlugin.context.config("1 - General", "Clock Font Color", Color.white, "Font color for the clock");
         AzuClockPlugin.ClockShadowColor = AzuClockPlugin.context.config("1 - General", "Clock Shadow Color", Color.black, "Color for the shadow");
         AzuClockPlugin.ToggleClockKeyOnPress = AzuClockPlugin.context.config("1 - General", "Show Clock Key On Press", AzuClockPlugin.Toggle.Off, "If true, limit clock display to when the hotkey is down");
-        AzuClockPlugin.ClockFormat = AzuClockPlugin.context.config("1 - General", "Clock Format", "HH:mm", "Time format; set to 'fuzzy' for fuzzy time");
-        AzuClockPlugin.ClockString = AzuClockPlugin.context.TextEntryConfig("Clock", "Clock String", "<b>{0}</b>", "Formatted clock string - {0} is replaced by the actual time string, {1} is replaced by the fuzzy string, {2} is replaced by the current day");
+        AzuClockPlugin.ClockFormat = AzuClockPlugin.context.config("1 - General", "Clock Format", "hh:mm tt", "Time format; set to 'fuzzy' for fuzzy time");
+        AzuClockPlugin.ClockString = AzuClockPlugin.context.TextEntryConfig("Clock", "Clock String", @"Configure this to your liking! Examples given<b><size=28><color=#FFD700>Game Time:</color></size> <i>{0}</i><size=26><color=#87CEFA>Fuzzy Time:</color></size> <i>{1}</i><size=24><color=#ADFF2F>Current Day:</color></size> <i>{2}</i><size=28><color=#FF69B4>Real Time:</color></size> <i>{3}</i></b>", "Formatted clock string - {0} is replaced by the game time string, {1} is replaced by the fuzzy string, {2} is replaced by the current day, {3} is replaced by the real time string");
         AzuClockPlugin.ClockTextAlignment = AzuClockPlugin.context.config("1 - General", "Clock Text Alignment", TextAnchor.MiddleCenter, "Clock text alignment.");
         AzuClockPlugin.ClockFuzzyStrings = AzuClockPlugin.context.TextEntryConfig("Clock", "Clock Fuzzy Strings", "Midnight,Early Morning,Early Morning,Before Dawn,Before Dawn,Dawn,Dawn,Morning,Morning,Late Morning,Late Morning,Midday,Midday,Early Afternoon,Early Afternoon,Afternoon,Afternoon,Evening,Evening,Night,Night,Late Night,Late Night,Midnight", "Fuzzy time strings to split up the day into custom periods if ClockFormat is set to 'fuzzy'; comma-separated");
 
@@ -162,7 +169,6 @@ public class Utilities
     internal static void AutoDoc()
     {
 #if DEBUG
-
         // Store Regex to get all characters after a [
         Regex regex = new(@"\[(.*?)\]");
 

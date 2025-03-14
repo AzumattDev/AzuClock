@@ -17,7 +17,7 @@ namespace AzuClock
 
     {
         internal const string ModName = "AzuClock";
-        internal const string ModVersion = "1.0.4";
+        internal const string ModVersion = "1.0.5";
         internal const string Author = "Azumatt";
         private const string ModGUID = Author + "." + ModName;
         private static string ConfigFileName = ModGUID + ".cfg";
@@ -64,11 +64,8 @@ namespace AzuClock
             if (ShowingClock.Value == Toggle.On && _configApplied && Player.m_localPlayer && Hud.instance)
             {
                 float alpha = 1f;
-                if(AzuClockPlugin.RealTime.Value == Toggle.On) {NewTimeString = Utilities.GetRealCurrentTimeString();}
-                else
-                {
-                    NewTimeString = Utilities.GetCurrentTimeString();
-                }
+                NewTimeString = Utilities.GetCombinedTimeString();
+
                 if (ShowClockOnChange.Value == Toggle.On)
                 {
                     if (NewTimeString == _lastTimeString)
@@ -143,7 +140,6 @@ namespace AzuClock
 
         private static ConfigEntry<Toggle> _serverConfigLocked = null!;
         public static ConfigEntry<Toggle> ShowingClock = null!;
-        internal static ConfigEntry<Toggle> RealTime = null!;
         internal static ConfigEntry<Toggle> ShowClockOnChange = null!;
         internal static ConfigEntry<float> ShowClockOnChangeFadeTime = null!;
         internal static ConfigEntry<float> ShowClockOnChangeFadeLength = null!;
@@ -172,7 +168,7 @@ namespace AzuClock
         internal static Rect _windowRect;
         internal static Rect _timeRect;
         internal static string NewTimeString = "";
-        
+
         internal ConfigEntry<T> config<T>(string group, string name, T value, ConfigDescription description)
         {
             ConfigEntry<T> configEntry = Config.Bind(group, name, value, description);
@@ -183,7 +179,7 @@ namespace AzuClock
         {
             return Config.Bind(group, name, value, new ConfigDescription(description));
         }
-        
+
         internal ConfigEntry<T> TextEntryConfig<T>(string group, string name, T value, string desc)
         {
             ConfigurationManagerAttributes attributes = new()
